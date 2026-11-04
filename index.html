@@ -665,6 +665,24 @@
                     <i class="fa-solid fa-xmark"></i>
                   </button>
                 </div>
+
+                <!-- RESULTADO DE AUDITORÍA CON GEMINI AI -->
+                <div id="boxGeminiAuditoria" class="hidden mt-2 p-2.5 rounded-xl border transition-all text-[11px]">
+                  <div id="boxGeminiCargando" class="flex items-center space-x-2 text-cyan-800">
+                    <i class="fa-solid fa-wand-magic-sparkles fa-spin text-sm text-[#01c0c8]"></i>
+                    <span class="font-bold">Gemini IA analizando voucher...</span>
+                  </div>
+                  <div id="boxGeminiResultado" class="hidden space-y-1">
+                    <div class="flex items-center justify-between">
+                      <span class="font-black flex items-center gap-1" id="lblGeminiTitulo">
+                        <i class="fa-solid fa-circle-check text-emerald-600"></i>
+                        Voucher Verificado por IA
+                      </span>
+                      <span id="badgeGeminiBanco" class="px-1.5 py-0.2 rounded text-[9px] font-black bg-cyan-100 text-cyan-800">Yape</span>
+                    </div>
+                    <p id="txtGeminiDetalle" class="text-slate-600 text-[10px]">Monto: S/ 49.99 &bull; Op: 148920</p>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -961,6 +979,8 @@
     const GOOGLE_SHEET_GVIZ_URL = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?tqx=out:json`;
     // WEBHOOK DE GOOGLE APPS SCRIPT PARA ACTUALIZAR EL EXCEL A DEUDA 0.00 Y GUARDAR COMPROBANTES EN GOOGLE DRIVE:
     const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw7_Ras1SNCZ0Pk0POU3DaUrz5M1sgGk4G4wJMnNftqysEKsyUTNfGvZzrmBkRpMcCUjw/exec";
+    // API KEY DE GOOGLE GEMINI (OPCIONAL O SE CONFIGURA DESDE LA APP):
+    const GEMINI_API_KEY = "AQ.Ab8RN6ImnNZZI_YrUpl9hoBoqd5aybwlYOyfZIh1G5_Ny2MD0w";
 
     // BASE DE DATOS LOCAL DE RESPALDO (IDÉNTICA A clientes_fop.xlsx)
     const DB_CLIENTES_EXCEL = {
@@ -1731,6 +1751,9 @@
         document.getElementById('boxPreviewVoucher').classList.remove('hidden');
         document.getElementById('btnSubirVoucherTrigger').classList.add('hidden');
         mostrarToast("📷 Comprobante adjuntado correctamente");
+
+        // Disparar auditoría inteligente con Gemini Vision AI si hay clave configurada
+        auditarComprobanteConGemini(voucherBase64Actual);
       };
       reader.readAsDataURL(file);
     }
@@ -1743,8 +1766,132 @@
       if (input) input.value = '';
       const box = document.getElementById('boxPreviewVoucher');
       if (box) box.classList.add('hidden');
+      const boxIA = document.getElementById('boxGeminiAuditoria');
+      if (boxIA) boxIA.classList.add('hidden');
       const trigger = document.getElementById('btnSubirVoucherTrigger');
       if (trigger) trigger.classList.remove('hidden');
+    }
+
+    // AUDITORÍA INTELIGENTE DE COMPROBANTES CON GEMINI VISION IA
+    async function auditarComprobanteConGemini(base64Image) {
+      const apiKey = localStorage.getItem('fop_gemini_key') || (typeof GEMINI_API_KEY !== 'undefined' ? GEMINI_API_KEY : '');
+      const boxAuditoria = document.getElementById('boxGeminiAuditoria');
+      if (!boxAuditoria) return;
+
+      // Si aún no se configuró clave de Gemini, mostrar aviso amigable y permitir continuar
+      if (!apiKey) {
+        boxAuditoria.className = "mt-2 p-2.5 rounded-xl border border-slate-200 bg-slate-50 text-[11px] block";
+        document.getElementById('boxCargando')?.classList.add('hidden');
+        const res = document.getElementById('boxGeminiResultado');
+        if (res) res.classList.remove('hidden');
+        document.getElementById('lblGeminiTitulo').innerHTML = `<i class="fa-solid fa-receipt text-[#01c0c8]"></i> Comprobante Cargado`;
+        document.getElementById('badgeGeminiBanco').textContent = "Listo";
+        document.getElementById('txtGeminiDetalle').innerHTML = `Se guardará en tu Google Drive al confirmar el pago. <button onclick="solicitarGeminiKey()" class="text-cyan-700 underline font-bold ml-1">Activar IA Gemini</button>`;
+        return;
+      }
+
+      const boxCargando = document.getElementById('boxGeminiCargando');
+      const boxResultado = document.getElementById('boxGeminiResultado');
+      const lblTitulo = document.getElementById('lblGeminiTitulo');
+      const badgeBanco = document.getElementById('badgeGeminiBanco');
+      const txtDetalle = document.getElementById('txtGeminiDetalle');
+
+      boxAuditoria.className = "mt-2 p-2.5 rounded-xl border border-cyan-200 bg-cyan-50/70 text-[11px] block";
+      boxCargando.classList.remove('hidden');
+      boxResultado.classList.add('hidden');
+
+      try {
+        const cleanBase64 = base64Image.replace(/^data:image\/\w+;base64,/, '');
+        const mimeMatch = base64Image.match(/^data:(image\/\w+);base64,/);
+        const mimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
+
+        const prompt = `Analiza este comprobante o voucher de pago de Yape, Plin o banco de Perú.
+Extrae los datos y responde ÚNICAMENTE un JSON válido sin formato markdown ni comillas triples:
+{
+  "es_valido": true,
+  "billetera": "Yape/Plin/Interbank/BBVA/Otro",
+  "monto": 49.99,
+  "numero_operacion": "12345678",
+  "destinatario": "nombre o telefono",
+  "mensaje": "Voucher verificado correctamente"
+}
+Si la foto NO es un comprobante de pago bancario legítimo, responde con:
+{
+  "es_valido": false,
+  "mensaje": "La imagen adjunta no parece ser un comprobante de pago legible"
+}`;
+
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${apiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{
+              parts: [
+                { text: prompt },
+                {
+                  inline_data: {
+                    mime_type: mimeType,
+                    data: cleanBase64
+                  }
+                }
+              ]
+            }],
+            generationConfig: {
+              temperature: 0.1,
+              response_mime_type: "application/json"
+            }
+          })
+        });
+
+        if (!res.ok) throw new Error("Gemini API Status: " + res.status);
+        const data = await res.json();
+        const textResp = data.candidates[0].content.parts[0].text;
+        const parsed = JSON.parse(textResp);
+
+        boxCargando.classList.add('hidden');
+        boxResultado.classList.remove('hidden');
+
+        if (parsed.es_valido) {
+          boxAuditoria.className = "mt-2 p-2.5 rounded-xl border border-emerald-300 bg-emerald-50 text-[11px] block";
+          lblTitulo.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-600"></i> Voucher Verificado por Gemini IA`;
+          badgeBanco.textContent = parsed.billetera || 'Aprobado';
+          badgeBanco.className = "px-1.5 py-0.2 rounded text-[9px] font-black bg-emerald-200 text-emerald-900";
+          txtDetalle.textContent = `Monto detectado: S/ ${parsed.monto ? parsed.monto.toFixed(2) : deudaActual.toFixed(2)} • N° Op: ${parsed.numero_operacion || 'Detectado'}`;
+
+          // Autocompletar el campo de N° de Operación en el formulario
+          if (parsed.numero_operacion && document.getElementById('inputNumOperacion')) {
+            document.getElementById('inputNumOperacion').value = parsed.numero_operacion;
+          }
+
+          mostrarToast(`✨ Gemini IA: Voucher de ${parsed.billetera || 'pago'} validado con éxito`);
+        } else {
+          boxAuditoria.className = "mt-2 p-2.5 rounded-xl border border-rose-300 bg-rose-50 text-[11px] block";
+          lblTitulo.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-rose-600"></i> Observación de IA`;
+          badgeBanco.textContent = "Revisión";
+          badgeBanco.className = "px-1.5 py-0.2 rounded text-[9px] font-black bg-rose-200 text-rose-900";
+          txtDetalle.textContent = parsed.mensaje || "Por favor sube una captura clara del comprobante.";
+        }
+      } catch (err) {
+        console.warn("Auditoría Gemini:", err);
+        boxCargando.classList.add('hidden');
+        boxResultado.classList.remove('hidden');
+        boxAuditoria.className = "mt-2 p-2.5 rounded-xl border border-slate-200 bg-slate-50 text-[11px] block";
+        lblTitulo.innerHTML = `<i class="fa-solid fa-image text-slate-500"></i> Comprobante Adjunto`;
+        badgeBanco.textContent = "Listo";
+        txtDetalle.textContent = "Comprobante listo para ser guardado en Google Drive.";
+      }
+    }
+
+    function solicitarGeminiKey() {
+      const actual = localStorage.getItem('fop_gemini_key') || '';
+      const key = prompt("Ingresa tu Gemini API Key de Google AI Studio:", actual);
+      if (key !== null) {
+        localStorage.setItem('fop_gemini_key', key.trim());
+        mostrarToast(key.trim() ? "🔑 Clave de Gemini IA guardada" : "ℹ️ Clave eliminada");
+        if (voucherBase64Actual && key.trim()) {
+          auditarComprobanteConGemini(voucherBase64Actual);
+        }
+      }
     }
 
     // VERIFICACIÓN Y EMISIÓN DE VOUCHER DE PAGO
