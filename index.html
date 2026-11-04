@@ -263,6 +263,7 @@
                     <i class="fa-solid fa-id-card text-xs text-[#01c0c8]"></i>
                   </span>
                   <input type="tel" id="loginDniInput" value="" maxlength="8" pattern="[0-9]*" inputmode="numeric" required placeholder="Ingresa tu número de DNI"
+                         oninput="const e=document.getElementById('loginErrorMessage'); if(e) e.classList.add('hidden');"
                          class="w-full pl-10 pr-3.5 py-3 text-xs bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#01c0c8] text-slate-900 font-bold transition-all">
                 </div>
               </div>
@@ -276,8 +277,15 @@
                     <i class="fa-solid fa-lock text-xs text-[#001b68]"></i>
                   </span>
                   <input type="password" id="loginPassInput" value="" maxlength="8" pattern="[0-9]*" inputmode="numeric" required placeholder="Repite tu DNI como contraseña"
+                         oninput="const e=document.getElementById('loginErrorMessage'); if(e) e.classList.add('hidden');"
                          class="w-full pl-10 pr-3.5 py-3 text-xs bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#01c0c8] text-slate-900 font-bold transition-all">
                 </div>
+              </div>
+
+              <!-- MENSAJE DE ACCESO DENEGADO SI NO ESTÁ EN EL EXCEL -->
+              <div id="loginErrorMessage" class="hidden p-3 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold text-center leading-tight">
+                <i class="fa-solid fa-triangle-exclamation mr-1 text-rose-600"></i>
+                <span id="txtLoginErrorDesc">El DNI ingresado no figura en el Excel de abonados. Acceso denegado.</span>
               </div>
 
               <button type="submit" id="btnLoginSubmit"
@@ -828,6 +836,79 @@
     </div>
   </div>
 
+  <!-- ============================================================== -->
+  <!-- MODAL DE SELECCIÓN DE BANCO PARA PLIN -->
+  <!-- ============================================================== -->
+  <div id="modal-selector-plin" class="fixed inset-0 bg-slate-950/75 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl p-5 max-w-xs w-full text-center shadow-2xl border border-slate-100 view-fade relative">
+      <button onclick="cerrarModalPlin()" class="absolute top-4 right-4 w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center text-xs">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div class="mx-auto w-12 h-12 rounded-2xl bg-[#00aec7]/10 flex items-center justify-center text-[#00aec7] mb-2">
+        <img src="plin-seeklogo.png" class="w-8 h-8 object-contain">
+      </div>
+      <h3 class="text-base font-black text-slate-900 tracking-tight">¿Con qué app usas Plin?</h3>
+      <p class="text-[11px] text-slate-500 mt-0.5 mb-3">
+        Elige tu banco para abrir tu aplicación directamente:
+      </p>
+
+      <div class="space-y-2 text-left text-xs mb-3">
+        <!-- Interbank -->
+        <button onclick="abrirBancoPlin('interbank')" class="w-full p-3 rounded-2xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 flex items-center justify-between font-bold text-emerald-950 transition-all active:scale-98">
+          <div class="flex items-center space-x-2.5">
+            <div class="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-black text-xs shadow-xs">IB</div>
+            <div>
+              <p class="text-xs font-black text-emerald-950">Interbank (Plin)</p>
+              <p class="text-[10px] text-emerald-700 font-normal">App Interbank Perú</p>
+            </div>
+          </div>
+          <i class="fa-solid fa-arrow-up-right-from-square text-emerald-700 text-xs"></i>
+        </button>
+
+        <!-- BBVA -->
+        <button onclick="abrirBancoPlin('bbva')" class="w-full p-3 rounded-2xl bg-blue-50 hover:bg-blue-100 border border-blue-200 flex items-center justify-between font-bold text-blue-950 transition-all active:scale-98">
+          <div class="flex items-center space-x-2.5">
+            <div class="w-8 h-8 rounded-xl bg-[#004481] text-white flex items-center justify-center font-black text-xs shadow-xs">BB</div>
+            <div>
+              <p class="text-xs font-black text-blue-950">BBVA (Plin)</p>
+              <p class="text-[10px] text-blue-700 font-normal">App BBVA Perú</p>
+            </div>
+          </div>
+          <i class="fa-solid fa-arrow-up-right-from-square text-blue-700 text-xs"></i>
+        </button>
+
+        <!-- Scotiabank -->
+        <button onclick="abrirBancoPlin('scotiabank')" class="w-full p-3 rounded-2xl bg-rose-50 hover:bg-rose-100 border border-rose-200 flex items-center justify-between font-bold text-rose-950 transition-all active:scale-98">
+          <div class="flex items-center space-x-2.5">
+            <div class="w-8 h-8 rounded-xl bg-red-600 text-white flex items-center justify-center font-black text-xs shadow-xs">SB</div>
+            <div>
+              <p class="text-xs font-black text-rose-950">Scotiabank (Plin)</p>
+              <p class="text-[10px] text-rose-700 font-normal">App Scotiabank Perú</p>
+            </div>
+          </div>
+          <i class="fa-solid fa-arrow-up-right-from-square text-rose-700 text-xs"></i>
+        </button>
+
+        <!-- BanBif / Cajas -->
+        <button onclick="abrirBancoPlin('cajas')" class="w-full p-2.5 rounded-2xl bg-slate-50 hover:bg-slate-100 border border-slate-200 flex items-center justify-between font-medium text-slate-800 transition-all active:scale-98">
+          <div class="flex items-center space-x-2.5">
+            <div class="w-8 h-8 rounded-xl bg-slate-700 text-white flex items-center justify-center font-black text-xs shadow-xs"><i class="fa-solid fa-building-columns text-[10px]"></i></div>
+            <div>
+              <p class="text-xs font-bold">BanBif / Caja Arequipa / Otras</p>
+              <p class="text-[9px] text-slate-400">Copiar número y abrir manualmente</p>
+            </div>
+          </div>
+          <i class="fa-solid fa-copy text-slate-500 text-xs"></i>
+        </button>
+      </div>
+
+      <div class="bg-cyan-50/80 p-2.5 rounded-xl border border-cyan-200 text-[10px] text-cyan-900 font-medium">
+        💡 El número <strong>914829378</strong> se copiará automáticamente al portapapeles para pegarlo en tu banco.
+      </div>
+    </div>
+  </div>
+
 
   <!-- ============================================================== -->
   <!-- JAVASCRIPT: LÓGICA RÁPIDA, CONEXIÓN CON GOOGLE SHEETS Y DEEP LINKS -->
@@ -945,6 +1026,9 @@
     // ==============================================================
     async function consultarClienteEnGoogleSheet(dniBuscado) {
       try {
+        const cleanBuscado = String(dniBuscado || '').trim().replace(/\D/g, '');
+        if (!cleanBuscado) return null;
+
         const res = await fetch(GOOGLE_SHEET_GVIZ_URL + '&t=' + Date.now());
         if (!res.ok) return null;
         const text = await res.text();
@@ -965,8 +1049,9 @@
             return v !== undefined && v !== null ? v : (row.c[idx].f || '');
           };
 
-          const rowDni = String(getVal(0) || '').trim();
-          if (rowDni === dniBuscado) {
+          const rawDni = String(getVal(0) || '').trim();
+          const cleanRowDni = rawDni.replace(/\D/g, '');
+          if (cleanRowDni === cleanBuscado) {
             const nombre = String(getVal(1) || 'Abonado FOP').trim();
             
             // Auto-detectar si las columnas están desplazadas por coma en la dirección
@@ -1001,7 +1086,7 @@
             else if (velocidad >= 600 || planNombre.toLowerCase().includes('estandar')) planKey = 'estandar';
 
             return {
-              dni: rowDni,
+              dni: cleanRowDni,
               nombre,
               direccion,
               planKey,
@@ -1201,25 +1286,23 @@
       // 1. Intentar consultar en el Google Sheet oficial en vivo
       let cliente = await consultarClienteEnGoogleSheet(dni);
 
-      // 2. Si no responde Google Sheet, buscar en base local
+      // 2. Si no responde Google Sheet, buscar en base local sincronizada
       if (!cliente) {
         cliente = DB_CLIENTES_EXCEL[dni];
       }
 
-      // 3. Si no existe en la base, crear como nuevo abonado activo
+      // 3. REGLA ESTRICTA: SOLO TIENEN ACCESO LOS QUE ESTÁN EN EL EXCEL / GOOGLE SHEETS
       if (!cliente) {
-        cliente = {
-          dni: dni,
-          nombre: "ABONADO FOP (DNI " + dni + ")",
-          direccion: "Huancayo, Junín",
-          planKey: "basico",
-          planNombre: "Plan Básico",
-          velocidad: 300,
-          precio: 49.99,
-          deuda: 49.99,
-          estado: "ACTIVO",
-          historial: []
-        };
+        btn.disabled = false;
+        btn.innerHTML = originalHtml;
+        const msgError = document.getElementById('loginErrorMessage');
+        const descError = document.getElementById('txtLoginErrorDesc');
+        if (msgError && descError) {
+          descError.textContent = `El DNI ${dni} no figura en el padrón de abonados del Excel. Acceso no autorizado.`;
+          msgError.classList.remove('hidden');
+        }
+        mostrarToast("⛔ Acceso denegado: DNI no registrado en el Excel");
+        return;
       }
 
       btn.disabled = false;
@@ -1451,7 +1534,8 @@
       const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
 
       if (isAndroid) {
-        window.location.href = "intent://#Intent;package=com.bcp.innovacxion.yapeapp;scheme=yape;end";
+        // Intent oficial de Android para lanzar el launcher de Yape
+        window.location.href = "intent:#Intent;action=android.intent.action.MAIN;category=android.intent.category.LAUNCHER;package=com.bcp.innovacxion.yapeapp;end";
         setTimeout(() => {
           window.location.href = "https://play.google.com/store/apps/details?id=com.bcp.innovacxion.yapeapp";
         }, 2500);
@@ -1465,26 +1549,72 @@
       }
     }
 
-    // DEEP LINK PARA ABRIR PLIN / BANCA EN EL CELULAR
+    // ABRIR SELECTOR INTELIGENTE DE BANCO PARA PLIN (INTERBANK / BBVA / SCOTIABANK)
     function abrirPlinYPagar() {
       copiarNumero('914829378');
-      mostrarToast("📱 Número 914829378 copiado. ¡Abriendo Plin!");
+      const modal = document.getElementById('modal-selector-plin');
+      if (modal) modal.classList.remove('hidden');
+    }
+
+    function cerrarModalPlin() {
+      const modal = document.getElementById('modal-selector-plin');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function abrirBancoPlin(banco) {
+      copiarNumero('914829378');
+      cerrarModalPlin();
 
       const isAndroid = /android/i.test(navigator.userAgent);
       const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
 
-      if (isAndroid) {
-        window.location.href = "intent://#Intent;package=pe.com.bbva.mobile;end";
-        setTimeout(() => {
-          window.location.href = "https://play.google.com/store/apps/details?id=pe.com.bbva.mobile";
-        }, 2500);
-      } else if (isIOS) {
-        window.location.href = "bbva://";
-        setTimeout(() => {
-          window.location.href = "https://apps.apple.com/pe/app/bbva-per%C3%BA/id466270386";
-        }, 2500);
+      if (banco === 'interbank') {
+        mostrarToast("📱 Abriendo Interbank... ¡Pega el 914829378 en Plin!");
+        if (isAndroid) {
+          window.location.href = "intent:#Intent;action=android.intent.action.MAIN;category=android.intent.category.LAUNCHER;package=pe.com.interbank.mobilebanking;end";
+          setTimeout(() => {
+            window.location.href = "https://play.google.com/store/apps/details?id=pe.com.interbank.mobilebanking";
+          }, 2500);
+        } else if (isIOS) {
+          window.location.href = "interbank://";
+          setTimeout(() => {
+            window.location.href = "https://apps.apple.com/pe/app/interbank-app/id447477387";
+          }, 2500);
+        } else {
+          window.open("https://interbank.pe/plin", "_blank");
+        }
+      } else if (banco === 'bbva') {
+        mostrarToast("📱 Abriendo BBVA... ¡Pega el 914829378 en Plin!");
+        if (isAndroid) {
+          window.location.href = "intent:#Intent;action=android.intent.action.MAIN;category=android.intent.category.LAUNCHER;package=pe.com.bbva.mobile;end";
+          setTimeout(() => {
+            window.location.href = "https://play.google.com/store/apps/details?id=pe.com.bbva.mobile";
+          }, 2500);
+        } else if (isIOS) {
+          window.location.href = "bbva://";
+          setTimeout(() => {
+            window.location.href = "https://apps.apple.com/pe/app/bbva-per%C3%BA/id466270386";
+          }, 2500);
+        } else {
+          window.open("https://www.bbva.pe/personas/servicios-digitales/plin.html", "_blank");
+        }
+      } else if (banco === 'scotiabank') {
+        mostrarToast("📱 Abriendo Scotiabank... ¡Pega el 914829378 en Plin!");
+        if (isAndroid) {
+          window.location.href = "intent:#Intent;action=android.intent.action.MAIN;category=android.intent.category.LAUNCHER;package=com.scotiabank.peru;end";
+          setTimeout(() => {
+            window.location.href = "https://play.google.com/store/apps/details?id=com.scotiabank.peru";
+          }, 2500);
+        } else if (isIOS) {
+          window.location.href = "scotiabankperu://";
+          setTimeout(() => {
+            window.location.href = "https://apps.apple.com/pe/app/scotiabank-per%C3%BA/id1206411707";
+          }, 2500);
+        } else {
+          window.open("https://www.scotiabank.com.pe/Personas/Canales-Digitales/Canales/plin", "_blank");
+        }
       } else {
-        window.open("https://www.plin.pe/", "_blank");
+        mostrarToast("📋 Número 914829378 copiado. ¡Abre tu app bancaria y paga por Plin!");
       }
     }
 

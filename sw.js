@@ -25,3 +25,48 @@ self.addEventListener('notificationclick', (event) => {
     })
   );
 });
+
+// Evento Push para notificaciones remotas en segundo plano (con la app cerrada)
+self.addEventListener('push', (event) => {
+  let data = {
+    title: '🔔 ¡No olvides pagar tu plan de internet!',
+    body: 'Tienes un recibo pendiente en Fibra Óptica del Perú. Evita cortes y paga al instante con Plin o Yape.',
+    icon: 'icon-192.png',
+    badge: 'icon-192.png'
+  };
+
+  if (event.data) {
+    try {
+      const payload = event.data.json();
+      data = { ...data, ...payload };
+    } catch(e) {
+      data.body = event.data.text() || data.body;
+    }
+  }
+
+  event.waitUntil(
+    self.registration.showNotification(data.title, {
+      body: data.body,
+      icon: data.icon,
+      badge: data.badge,
+      vibrate: [200, 100, 200],
+      tag: 'recordatorio-deuda-fop',
+      renotify: true
+    })
+  );
+});
+
+// Recordatorio periódico en segundo plano (Periodic Background Sync)
+self.addEventListener('periodicsync', (event) => {
+  if (event.tag === 'check-deuda-sync') {
+    event.waitUntil(
+      self.registration.showNotification('🔔 Recordatorio de Pago FOP', {
+        body: 'Revisa tu estado de cuenta en Mi FOP. Evita el corte de tu servicio de fibra óptica y FiberTV.',
+        icon: 'icon-192.png',
+        badge: 'icon-192.png',
+        vibrate: [200, 100, 200],
+        tag: 'recordatorio-deuda-fop'
+      })
+    );
+  }
+});
