@@ -631,21 +631,26 @@
             <!-- SECCIÓN: VALIDACIÓN CON COMPROBANTE / VOUCHER Y N° OPERACIÓN -->
             <div id="seccionSubirVoucher" class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200/80 text-left space-y-2.5 my-3">
               <div class="flex items-center justify-between">
-                <span class="text-[10px] font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-                  <i class="fa-solid fa-receipt text-[#01c0c8]"></i>
-                  Validación de Pago
+                <span class="text-[10px] font-black text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                  <i class="fa-solid fa-shield-check text-[#01c0c8]"></i>
+                  Validación Obligatoria de Pago
                 </span>
-                <span class="text-[9px] bg-[#001b68] text-white px-2 py-0.5 rounded-md font-bold">Voucher</span>
+                <span class="text-[9px] bg-rose-600 text-white px-2 py-0.5 rounded-md font-bold uppercase tracking-wider animate-pulse">Requerido</span>
               </div>
+              <p class="text-[10px] text-slate-500 font-medium">⚠️ Es <strong>obligatorio</strong> ingresar el N° de Operación o subir la captura del Voucher para validar:</p>
 
               <div>
-                <label class="block text-[10px] font-bold text-slate-600 mb-1">N° de Operación (opcional):</label>
+                <label class="block text-[10px] font-bold text-slate-700 mb-1">
+                  N° de Operación <span class="text-rose-600 font-bold">*</span>
+                </label>
                 <input type="text" id="inputNumOperacion" placeholder="Ej: 1548209" maxlength="20"
                        class="w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-xl font-mono font-bold focus:outline-none focus:ring-2 focus:ring-[#01c0c8]">
               </div>
 
               <div>
-                <label class="block text-[10px] font-bold text-slate-600 mb-1">Captura o foto del comprobante:</label>
+                <label class="block text-[10px] font-bold text-slate-700 mb-1">
+                  Captura o foto del comprobante <span class="text-rose-600 font-bold">*</span>
+                </label>
                 <input type="file" id="inputVoucherFile" accept="image/*" class="hidden" onchange="procesarArchivoVoucher(event)">
                 
                 <div id="btnSubirVoucherTrigger" onclick="document.getElementById('inputVoucherFile').click()"
@@ -726,8 +731,8 @@
             <!-- ASISTENTE VIRTUAL INTELIGENTE "FOPI" -->
             <div onclick="abrirChatFopi()" class="p-3.5 rounded-2xl border-2 border-[#01c0c8] bg-gradient-to-r from-cyan-50 via-white to-blue-50 hover:bg-cyan-50 transition-all flex items-center justify-between block mb-3 cursor-pointer active:scale-98 shadow-xs">
               <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 rounded-2xl bg-gradient-to-r from-[#001b68] to-[#01c0c8] text-white flex items-center justify-center text-xl shadow-xs">
-                  🤖
+                <div class="w-11 h-11 rounded-2xl bg-gradient-to-r from-[#001b68] to-[#01c0c8] text-white flex items-center justify-center overflow-hidden shadow-xs shrink-0">
+                  <img src="fopi-avatar.png" alt="FOPI" class="w-full h-full object-cover">
                 </div>
                 <div>
                   <div class="flex items-center space-x-1.5">
@@ -840,9 +845,9 @@
   <!-- ============================================================== -->
   <div id="btnFopiFloating" onclick="abrirChatFopi()" 
        class="fixed bottom-20 right-4 z-40 flex items-center space-x-2 bg-gradient-to-r from-[#001b68] to-[#01c0c8] text-white p-2.5 sm:px-3 sm:py-2.5 rounded-full shadow-2xl cursor-pointer hover:scale-105 active:scale-95 transition-all border-2 border-white/80 animate-bounce">
-    <div class="relative w-7 h-7 rounded-full bg-white flex items-center justify-center text-[#001b68] font-black text-sm shadow-inner shrink-0">
-      🤖
-      <span class="absolute -top-0.5 -right-0.5 w-2 h-2 bg-emerald-500 rounded-full border border-white animate-pulse"></span>
+    <div class="relative w-8 h-8 rounded-full bg-white flex items-center justify-center p-0.5 shadow-inner shrink-0 overflow-hidden">
+      <img src="fopi-avatar.png" alt="FOPI" class="w-full h-full object-cover rounded-full">
+      <span class="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full border border-white animate-pulse"></span>
     </div>
     <div class="text-left pr-1">
       <p class="text-[11px] font-black leading-none flex items-center gap-1">
@@ -861,8 +866,8 @@
       <!-- HEADER DEL CHAT -->
       <div class="bg-gradient-to-r from-[#001b68] to-[#002b8a] p-3.5 text-white flex items-center justify-between shrink-0 shadow-md">
         <div class="flex items-center space-x-2.5">
-          <div class="relative w-9 h-9 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-lg">
-            🤖
+          <div class="relative w-9 h-9 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center overflow-hidden shrink-0">
+            <img src="fopi-avatar.png" alt="FOPI" class="w-full h-full object-cover">
             <span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-400 rounded-full border-2 border-[#001b68]"></span>
           </div>
           <div>
@@ -898,8 +903,8 @@
       <div id="contenedorMensajesFopi" class="flex-1 p-3.5 overflow-y-auto space-y-3 bg-[#f8fafc] text-xs">
         <!-- Mensaje de bienvenida de FOPI -->
         <div class="flex items-start space-x-2">
-          <div class="w-7 h-7 rounded-xl bg-[#001b68] text-white flex items-center justify-center text-xs shrink-0 shadow-xs">
-            🤖
+          <div class="w-8 h-8 rounded-xl bg-[#001b68] text-white flex items-center justify-center overflow-hidden shrink-0 shadow-xs">
+            <img src="fopi-avatar.png" alt="FOPI" class="w-full h-full object-cover">
           </div>
           <div class="bg-white p-3 rounded-2xl rounded-tl-none border border-slate-200/80 shadow-xs max-w-[85%] text-slate-800 space-y-1">
             <p class="font-bold text-[11px] text-[#001b68]">¡Hola! Soy FOPI 👋</p>
@@ -947,7 +952,7 @@
       <div class="bg-slate-50 rounded-2xl p-3 text-left text-xs mb-4 space-y-1.5 border border-slate-200/80">
         <div class="flex justify-between">
           <span class="text-slate-400">Cliente:</span>
-          <strong class="text-slate-800">RENZO MADGE</strong>
+          <strong id="modalClienteNombre" class="text-slate-800">Cliente</strong>
         </div>
         <div class="flex justify-between">
           <span class="text-slate-400">Método:</span>
@@ -956,6 +961,10 @@
         <div class="flex justify-between">
           <span class="text-slate-400">Monto:</span>
           <strong id="modalMontoPagado" class="text-emerald-700 font-black">S/ 49.99</strong>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-400">N° Operación:</span>
+          <span id="modalNumOp" class="text-slate-700 font-mono font-bold">S/N</span>
         </div>
         <div class="flex justify-between">
           <span class="text-slate-400">Fecha:</span>
@@ -1509,7 +1518,9 @@
         precio: cliente.precio
       };
       deudaActual = cliente.deuda;
-      misPagosCliente = cliente.historial ? [...cliente.historial] : [];
+      // Cargar historial exclusivo y persistente de este DNI
+      misPagosCliente = cargarHistorialPorDni(cliente.dni, cliente.historial || []);
+      renderFeedHistorial(misPagosCliente);
 
       isAuthenticated = true;
       actualizarUIPlan();
@@ -1531,6 +1542,8 @@
 
     function cerrarSesion() {
       isAuthenticated = false;
+      misPagosCliente = [];
+      renderFeedHistorial([]);
       // Limpiar campos de login para que queden vacíos
       const inpDni = document.getElementById('loginDniInput');
       const inpPass = document.getElementById('loginPassInput');
@@ -2006,15 +2019,50 @@ Si la foto NO es un comprobante de pago bancario legítimo, responde con:
       }
     }
 
+    // FUNCIONES DE HISTORIAL PERSISTENTE POR DNI
+    function cargarHistorialPorDni(dni, historialBase) {
+      if (!dni) return [];
+      try {
+        const guardado = localStorage.getItem('fop_pagos_' + dni);
+        if (guardado) {
+          const parsed = JSON.parse(guardado);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch(e) {}
+      return Array.isArray(historialBase) ? [...historialBase] : [];
+    }
+
+    function guardarHistorialPorDni(dni, lista) {
+      if (!dni) return;
+      try {
+        localStorage.setItem('fop_pagos_' + dni, JSON.stringify(lista));
+      } catch(e) {}
+    }
+
     // VERIFICACIÓN Y EMISIÓN DE VOUCHER DE PAGO
     async function verificarPagoDirecto() {
+      const numOp = document.getElementById('inputNumOperacion') ? document.getElementById('inputNumOperacion').value.trim() : '';
+
+      // VALIDACIÓN OBLIGATORIA PARA PLIN Y YAPE: EXIGE N° DE OPERACIÓN O VOUCHER
+      if (metodoSeleccionado === 'Plin' || metodoSeleccionado === 'Yape') {
+        if (!numOp && !voucherBase64Actual) {
+          mostrarToast("⚠️ Obligatorio: Ingresa el N° de Operación o sube la captura del Voucher");
+          const inputOp = document.getElementById('inputNumOperacion');
+          if (inputOp) {
+            inputOp.focus();
+            inputOp.classList.add('border-rose-500', 'ring-2', 'ring-rose-400');
+            setTimeout(() => inputOp.classList.remove('border-rose-500', 'ring-2', 'ring-rose-400'), 3500);
+          }
+          return;
+        }
+      }
+
       const btn = document.getElementById('btnConfirmarTransferido') || document.getElementById('btnActionAppPago');
       btn.disabled = true;
       const originalHTML = btn.innerHTML;
       btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>Registrando Pago en Excel...</span>';
       btn.classList.add('opacity-80');
 
-      const numOp = document.getElementById('inputNumOperacion') ? document.getElementById('inputNumOperacion').value.trim() : 'S/N';
       const d = new Date();
       const fechaStr = d.toLocaleDateString('es-PE', { day: '2-digit', month: '2-digit', year: 'numeric' });
       const horaStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
@@ -2056,9 +2104,17 @@ Si la foto NO es un comprobante de pago bancario legítimo, responde con:
           });
         } catch(err) {}
 
+        // MOSTRAR EL NOMBRE REAL DEL CLIENTE ACTIVO EN EL MODAL DE CONFIRMACIÓN
+        const nombreAbonado = (clienteActivo && clienteActivo.nombre) ? clienteActivo.nombre : 'Abonado FOP';
+        const elCliente = document.getElementById('modalClienteNombre');
+        if (elCliente) elCliente.textContent = nombreAbonado;
+
         document.getElementById('modalFechaHora').textContent = `${fechaStr} ${horaStr}`;
         document.getElementById('modalMetodoBadge').textContent = metodoSeleccionado;
         document.getElementById('modalMontoPagado').textContent = `S/ ${deudaActual.toFixed(2)}`;
+
+        const elNumOp = document.getElementById('modalNumOp');
+        if (elNumOp) elNumOp.textContent = numOp || 'S/N';
 
         const nuevoPago = {
           id: "#FOP-" + Math.floor(275 + Math.random() * 50),
@@ -2072,9 +2128,10 @@ Si la foto NO es un comprobante de pago bancario legítimo, responde con:
         };
 
         misPagosCliente.unshift(nuevoPago);
-        if (clienteActivo && clienteActivo.historial) {
-          clienteActivo.historial.unshift(nuevoPago);
+        if (clienteActivo && clienteActivo.dni) {
+          guardarHistorialPorDni(clienteActivo.dni, misPagosCliente);
         }
+        renderFeedHistorial(misPagosCliente);
 
         // DEUDA AUTOMÁTICAMENTE QUEDA EN 0.00 Y ESTADO AL DÍA
         deudaActual = 0.00;
@@ -2249,8 +2306,8 @@ Instrucciones:
       } else {
         div.className = "flex items-start space-x-2";
         div.innerHTML = `
-          <div class="w-7 h-7 rounded-xl bg-[#001b68] text-white flex items-center justify-center text-xs shrink-0 shadow-xs">
-            🤖
+          <div class="w-7 h-7 rounded-xl bg-[#001b68] text-white flex items-center justify-center overflow-hidden shrink-0 shadow-xs">
+            <img src="fopi-avatar.png" alt="FOPI" class="w-full h-full object-cover">
           </div>
           <div class="bg-white p-3 rounded-2xl rounded-tl-none border border-slate-200/80 shadow-xs max-w-[85%] text-slate-800 space-y-1 text-[11px] leading-relaxed">
             <p class="font-bold text-[10px] text-[#001b68]">FOPI</p>
