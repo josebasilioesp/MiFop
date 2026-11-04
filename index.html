@@ -628,6 +628,46 @@
               </div>
             </div>
 
+            <!-- SECCIÓN: VALIDACIÓN CON COMPROBANTE / VOUCHER Y N° OPERACIÓN -->
+            <div id="seccionSubirVoucher" class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200/80 text-left space-y-2.5 my-3">
+              <div class="flex items-center justify-between">
+                <span class="text-[10px] font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                  <i class="fa-solid fa-receipt text-[#01c0c8]"></i>
+                  Validación de Pago
+                </span>
+                <span class="text-[9px] bg-[#001b68] text-white px-2 py-0.5 rounded-md font-bold">Voucher</span>
+              </div>
+
+              <div>
+                <label class="block text-[10px] font-bold text-slate-600 mb-1">N° de Operación (opcional):</label>
+                <input type="text" id="inputNumOperacion" placeholder="Ej: 1548209" maxlength="20"
+                       class="w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-xl font-mono font-bold focus:outline-none focus:ring-2 focus:ring-[#01c0c8]">
+              </div>
+
+              <div>
+                <label class="block text-[10px] font-bold text-slate-600 mb-1">Captura o foto del comprobante:</label>
+                <input type="file" id="inputVoucherFile" accept="image/*" class="hidden" onchange="procesarArchivoVoucher(event)">
+                
+                <div id="btnSubirVoucherTrigger" onclick="document.getElementById('inputVoucherFile').click()"
+                     class="w-full p-2.5 rounded-xl border-2 border-dashed border-[#01c0c8] bg-white hover:bg-cyan-50/60 cursor-pointer flex items-center justify-center space-x-2 text-xs font-bold text-cyan-900 transition-all">
+                  <i class="fa-solid fa-cloud-arrow-up text-base text-[#01c0c8]"></i>
+                  <span id="txtSubirVoucherLabel">Subir captura del Voucher</span>
+                </div>
+
+                <!-- PREVIEW DE LA IMAGEN CARGADA -->
+                <div id="boxPreviewVoucher" class="hidden mt-2 p-1.5 bg-white rounded-xl border border-slate-200 flex items-center space-x-2">
+                  <img id="imgPreviewVoucher" class="w-10 h-10 object-cover rounded-lg border border-slate-100">
+                  <div class="text-[10px] truncate flex-1">
+                    <p id="txtVoucherFileName" class="font-bold text-slate-800 truncate">voucher.jpg</p>
+                    <p class="text-emerald-600 font-semibold flex items-center gap-1"><i class="fa-solid fa-check text-[9px]"></i> Comprobante adjunto</p>
+                  </div>
+                  <button type="button" onclick="eliminarVoucherPreview(event)" class="w-6 h-6 rounded-full bg-slate-100 hover:bg-rose-100 text-slate-400 hover:text-rose-600 flex items-center justify-center text-xs">
+                    <i class="fa-solid fa-xmark"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+
             <!-- ACCIONES DE PAGO: ABRIR APP NATIVA (YAPE / PLIN) Y CONFIRMAR -->
             <div class="space-y-2 mt-3">
               <!-- BOTÓN PRINCIPAL DINÁMICO QUE ABRE LA APP DE YAPE O PLIN -->
@@ -919,6 +959,8 @@
     // ==============================================================
     const GOOGLE_SHEET_ID = "1tgLlfBpNQ5JzuJ--XM01bgo4UABnAd8pmWrOJxjLUxU";
     const GOOGLE_SHEET_GVIZ_URL = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?tqx=out:json`;
+    // WEBHOOK DE GOOGLE APPS SCRIPT PARA ACTUALIZAR EL EXCEL A DEUDA 0.00 Y GUARDAR COMPROBANTES EN GOOGLE DRIVE:
+    const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw7_Ras1SNCZ0Pk0POU3DaUrz5M1sgGk4G4wJMnNftqysEKsyUTNfGvZzrmBkRpMcCUjw/exec";
 
     // BASE DE DATOS LOCAL DE RESPALDO (IDÉNTICA A clientes_fop.xlsx)
     const DB_CLIENTES_EXCEL = {
@@ -1670,13 +1712,76 @@
       }, 3200);
     }
 
+    // ==============================================================
+    // MANEJO DE COMPROBANTES / VOUCHERS (FOTO EN BASE64)
+    // ==============================================================
+    let voucherBase64Actual = null;
+    let voucherFileNameActual = '';
+
+    function procesarArchivoVoucher(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      voucherFileNameActual = file.name;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        voucherBase64Actual = e.target.result;
+        document.getElementById('imgPreviewVoucher').src = voucherBase64Actual;
+        document.getElementById('txtVoucherFileName').textContent = file.name;
+        document.getElementById('boxPreviewVoucher').classList.remove('hidden');
+        document.getElementById('btnSubirVoucherTrigger').classList.add('hidden');
+        mostrarToast("📷 Comprobante adjuntado correctamente");
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function eliminarVoucherPreview(e) {
+      if (e) e.stopPropagation();
+      voucherBase64Actual = null;
+      voucherFileNameActual = '';
+      const input = document.getElementById('inputVoucherFile');
+      if (input) input.value = '';
+      const box = document.getElementById('boxPreviewVoucher');
+      if (box) box.classList.add('hidden');
+      const trigger = document.getElementById('btnSubirVoucherTrigger');
+      if (trigger) trigger.classList.remove('hidden');
+    }
+
     // VERIFICACIÓN Y EMISIÓN DE VOUCHER DE PAGO
-    function verificarPagoDirecto() {
-      const btn = document.getElementById('btnActionAppPago');
+    async function verificarPagoDirecto() {
+      const btn = document.getElementById('btnConfirmarTransferido') || document.getElementById('btnActionAppPago');
       btn.disabled = true;
       const originalHTML = btn.innerHTML;
-      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>Registrando Pago...</span>';
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>Registrando Pago en Excel...</span>';
       btn.classList.add('opacity-80');
+
+      const numOp = document.getElementById('inputNumOperacion') ? document.getElementById('inputNumOperacion').value.trim() : 'S/N';
+      const d = new Date();
+      const fechaStr = d.toLocaleDateString('es-PE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+      const horaStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+
+      // Si el administrador configuró la URL de Google Apps Script, actualizar Excel y Drive en vivo
+      if (typeof GOOGLE_APPS_SCRIPT_URL !== 'undefined' && GOOGLE_APPS_SCRIPT_URL && GOOGLE_APPS_SCRIPT_URL.startsWith('http')) {
+        try {
+          await fetch(GOOGLE_APPS_SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({
+              dni: (clienteActivo && clienteActivo.dni) || '48520048',
+              monto: deudaActual,
+              canal: metodoSeleccionado,
+              numOperacion: numOp || 'S/N',
+              fecha: fechaStr,
+              hora: horaStr,
+              voucherBase64: voucherBase64Actual
+            })
+          });
+          mostrarToast("✅ Pago y voucher sincronizados con Google Sheet");
+        } catch(errFetch) {
+          console.warn("Webhook Google Apps Script:", errFetch);
+        }
+      }
 
       setTimeout(() => {
         btn.disabled = false;
@@ -1692,10 +1797,6 @@
           });
         } catch(err) {}
 
-        const d = new Date();
-        const fechaStr = d.toLocaleDateString('es-PE', { day: '2-digit', month: '2-digit', year: 'numeric' });
-        const horaStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
-        
         document.getElementById('modalFechaHora').textContent = `${fechaStr} ${horaStr}`;
         document.getElementById('modalMetodoBadge').textContent = metodoSeleccionado;
         document.getElementById('modalMontoPagado').textContent = `S/ ${deudaActual.toFixed(2)}`;
@@ -1706,7 +1807,9 @@
           canal: metodoSeleccionado,
           monto: deudaActual,
           estado: "Confirmado",
-          desc: `${planActual.nombre} ${planActual.velocidad} Mbps`
+          desc: `${planActual.nombre} ${planActual.velocidad} Mbps`,
+          numOp: numOp || 'S/N',
+          voucherThumb: voucherBase64Actual
         };
 
         misPagosCliente.unshift(nuevoPago);
@@ -1714,8 +1817,20 @@
           clienteActivo.historial.unshift(nuevoPago);
         }
 
+        // DEUDA AUTOMÁTICAMENTE QUEDA EN 0.00 Y ESTADO AL DÍA
+        deudaActual = 0.00;
+        if (clienteActivo) {
+          clienteActivo.deuda = 0.00;
+          clienteActivo.estado = "AL DIA";
+        }
+        actualizarUIPlan();
+
+        // Limpiar inputs de voucher para futuros pagos
+        eliminarVoucherPreview();
+        if (document.getElementById('inputNumOperacion')) document.getElementById('inputNumOperacion').value = '';
+
         document.getElementById('modal-confirmado').classList.remove('hidden');
-      }, 600);
+      }, 700);
     }
 
     function cerrarModalIrPortal() {
