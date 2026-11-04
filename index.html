@@ -720,7 +720,24 @@
                 </button>
                 <h2 class="text-xs font-black text-slate-900 uppercase">Centro de Soporte FOP</h2>
               </div>
-              <span class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">WhatsApp 24/7</span>
+              <span class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">Atención 24/7</span>
+            </div>
+
+            <!-- ASISTENTE VIRTUAL INTELIGENTE "FOPI" -->
+            <div onclick="abrirChatFopi()" class="p-3.5 rounded-2xl border-2 border-[#01c0c8] bg-gradient-to-r from-cyan-50 via-white to-blue-50 hover:bg-cyan-50 transition-all flex items-center justify-between block mb-3 cursor-pointer active:scale-98 shadow-xs">
+              <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-2xl bg-gradient-to-r from-[#001b68] to-[#01c0c8] text-white flex items-center justify-center text-xl shadow-xs">
+                  🤖
+                </div>
+                <div>
+                  <div class="flex items-center space-x-1.5">
+                    <p class="text-xs font-black text-slate-900">Hablar con FOPI (Asistente IA)</p>
+                    <span class="text-[8px] font-black px-1.5 py-0.2 rounded bg-emerald-500 text-white animate-pulse">En línea</span>
+                  </div>
+                  <p class="text-[10px] text-cyan-800 font-medium">Resuelve dudas de pagos, recibos y tu internet</p>
+                </div>
+              </div>
+              <i class="fa-solid fa-chevron-right text-cyan-700 text-xs"></i>
             </div>
 
             <!-- NÚMERO 1: PAGOS -->
@@ -817,6 +834,101 @@
       </nav>
 
     </div>
+
+  <!-- ============================================================== -->
+  <!-- BOTÓN FLOTANTE DE FOPI (ASISTENTE IA VIRTUAL DE FOP) -->
+  <!-- ============================================================== -->
+  <div id="btnFopiFloating" onclick="abrirChatFopi()" 
+       class="fixed bottom-20 right-4 z-40 flex items-center space-x-2 bg-gradient-to-r from-[#001b68] to-[#01c0c8] text-white p-2.5 sm:px-3 sm:py-2.5 rounded-full shadow-2xl cursor-pointer hover:scale-105 active:scale-95 transition-all border-2 border-white/80 animate-bounce">
+    <div class="relative w-7 h-7 rounded-full bg-white flex items-center justify-center text-[#001b68] font-black text-sm shadow-inner shrink-0">
+      🤖
+      <span class="absolute -top-0.5 -right-0.5 w-2 h-2 bg-emerald-500 rounded-full border border-white animate-pulse"></span>
+    </div>
+    <div class="text-left pr-1">
+      <p class="text-[11px] font-black leading-none flex items-center gap-1">
+        FOPI IA
+      </p>
+      <p class="text-[9px] text-cyan-100 font-medium leading-tight">¿Dudas? Chatea aquí</p>
+    </div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- MODAL COMPLETO DE CHAT CON FOPI (ASISTENTE VIRTUAL GEMINI) -->
+  <!-- ============================================================== -->
+  <div id="modal-chat-fopi" class="fixed inset-0 bg-slate-950/75 backdrop-blur-xs z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="bg-white rounded-t-3xl sm:rounded-3xl w-full max-w-sm h-[85vh] sm:h-[600px] flex flex-col shadow-2xl border border-slate-100 overflow-hidden view-fade">
+      
+      <!-- HEADER DEL CHAT -->
+      <div class="bg-gradient-to-r from-[#001b68] to-[#002b8a] p-3.5 text-white flex items-center justify-between shrink-0 shadow-md">
+        <div class="flex items-center space-x-2.5">
+          <div class="relative w-9 h-9 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-lg">
+            🤖
+            <span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-400 rounded-full border-2 border-[#001b68]"></span>
+          </div>
+          <div>
+            <div class="flex items-center space-x-1.5">
+              <h3 class="text-xs font-black tracking-tight text-white">FOPI Asistente Virtual</h3>
+              <span class="text-[8px] font-black px-1.5 py-0.2 rounded bg-[#01c0c8] text-slate-950">Gemini IA</span>
+            </div>
+            <p class="text-[10px] text-cyan-200 font-medium">Fibra Óptica del Perú &bull; En línea</p>
+          </div>
+        </div>
+        <button onclick="cerrarChatFopi()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center text-xs transition-colors">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- CHIPS DE CONSULTA RÁPIDA -->
+      <div class="p-2 bg-slate-50 border-b border-slate-100 flex items-center space-x-1.5 overflow-x-auto text-[10px] shrink-0">
+        <button onclick="enviarPreguntaRapidaFopi('¿Cómo pago mi recibo con Yape o Plin?')" class="px-2.5 py-1 rounded-full bg-white border border-slate-200 font-semibold text-slate-700 whitespace-nowrap hover:bg-cyan-50 hover:border-[#01c0c8] transition-all">
+          💳 ¿Cómo pagar con Yape/Plin?
+        </button>
+        <button onclick="enviarPreguntaRapidaFopi('¿Cuál es mi deuda actual y mi plan?')" class="px-2.5 py-1 rounded-full bg-white border border-slate-200 font-semibold text-slate-700 whitespace-nowrap hover:bg-cyan-50 hover:border-[#01c0c8] transition-all">
+          📋 ¿Cuál es mi deuda?
+        </button>
+        <button onclick="enviarPreguntaRapidaFopi('¿Qué planes de fibra óptica tienen y cuánto cuestan?')" class="px-2.5 py-1 rounded-full bg-white border border-slate-200 font-semibold text-slate-700 whitespace-nowrap hover:bg-cyan-50 hover:border-[#01c0c8] transition-all">
+          ⚡ Ver planes de FOP
+        </button>
+        <button onclick="enviarPreguntaRapidaFopi('Mi internet está lento o no tengo señal en el router')" class="px-2.5 py-1 rounded-full bg-white border border-slate-200 font-semibold text-slate-700 whitespace-nowrap hover:bg-cyan-50 hover:border-[#01c0c8] transition-all">
+          📶 Soporte técnico
+        </button>
+      </div>
+
+      <!-- CUERPO DE MENSAJES DEL CHAT -->
+      <div id="contenedorMensajesFopi" class="flex-1 p-3.5 overflow-y-auto space-y-3 bg-[#f8fafc] text-xs">
+        <!-- Mensaje de bienvenida de FOPI -->
+        <div class="flex items-start space-x-2">
+          <div class="w-7 h-7 rounded-xl bg-[#001b68] text-white flex items-center justify-center text-xs shrink-0 shadow-xs">
+            🤖
+          </div>
+          <div class="bg-white p-3 rounded-2xl rounded-tl-none border border-slate-200/80 shadow-xs max-w-[85%] text-slate-800 space-y-1">
+            <p class="font-bold text-[11px] text-[#001b68]">¡Hola! Soy FOPI 👋</p>
+            <p class="text-[11px] leading-relaxed">
+              Tu asistente virtual inteligente de <strong>Fibra Óptica del Perú</strong>. ¿Tienes alguna duda sobre tus pagos, tu plan de internet o necesitas soporte técnico? ¡Pregúntame con confianza!
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- INDICADOR DE ESCRIBIENDO -->
+      <div id="indicadorEscribiendoFopi" class="hidden px-4 py-1.5 text-[10px] text-slate-400 italic bg-white border-t border-slate-100 flex items-center space-x-1.5 shrink-0">
+        <i class="fa-solid fa-wand-magic-sparkles text-[#01c0c8] animate-spin"></i>
+        <span>FOPI está pensando...</span>
+      </div>
+
+      <!-- INPUT Y BOTÓN DE ENVIAR -->
+      <div class="p-2.5 bg-white border-t border-slate-200 flex items-center space-x-2 shrink-0">
+        <input type="text" id="inputFopiTexto" placeholder="Escribe tu consulta aquí..."
+               onkeydown="if(event.key==='Enter') enviarMensajeUsuarioFopi()"
+               class="flex-1 px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#01c0c8] font-medium text-slate-800">
+        <button onclick="enviarMensajeUsuarioFopi()" 
+                class="w-10 h-10 rounded-2xl bg-gradient-to-r from-[#001b68] to-[#01c0c8] hover:opacity-90 text-white flex items-center justify-center text-xs shadow-md active:scale-95 transition-all shrink-0">
+          <i class="fa-solid fa-paper-plane"></i>
+        </button>
+      </div>
+
+    </div>
+  </div>
 
 
   <!-- ============================================================== -->
@@ -2021,6 +2133,133 @@ Si la foto NO es un comprobante de pago bancario legítimo, responde con:
         `;
         cont.appendChild(card);
       });
+    }
+
+    // ==============================================================
+    // ASISTENTE VIRTUAL IA: "FOPI" (POWERED BY GEMINI 3.5 FLASH)
+    // ==============================================================
+    function abrirChatFopi() {
+      const modal = document.getElementById('modal-chat-fopi');
+      if (modal) modal.classList.remove('hidden');
+      setTimeout(() => {
+        const input = document.getElementById('inputFopiTexto');
+        if (input) input.focus();
+      }, 200);
+    }
+
+    function cerrarChatFopi() {
+      const modal = document.getElementById('modal-chat-fopi');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function enviarPreguntaRapidaFopi(pregunta) {
+      const input = document.getElementById('inputFopiTexto');
+      if (input) {
+        input.value = pregunta;
+        enviarMensajeUsuarioFopi();
+      }
+    }
+
+    async function enviarMensajeUsuarioFopi() {
+      const input = document.getElementById('inputFopiTexto');
+      const msg = input ? input.value.trim() : '';
+      if (!msg) return;
+
+      input.value = '';
+      agregarBurbujaChat('usuario', msg);
+
+      const ind = document.getElementById('indicadorEscribiendoFopi');
+      if (ind) ind.classList.remove('hidden');
+
+      const apiKey = localStorage.getItem('fop_gemini_key') || (typeof GEMINI_API_KEY !== 'undefined' ? GEMINI_API_KEY : '');
+
+      const nombreCliente = (clienteActivo && clienteActivo.nombre) || 'Abonado';
+      const dniCliente = (clienteActivo && clienteActivo.dni) || 'No especificado';
+      const planCliente = planActual ? `${planActual.nombre} ${planActual.velocidad} Mbps` : 'Plan FOP';
+      const estadoCliente = deudaActual > 0 ? `DEUDA PENDIENTE de S/ ${deudaActual.toFixed(2)}` : 'AL DIA (S/ 0.00 de deuda, servicio activo)';
+
+      const systemPrompt = `Eres FOPI, el simpático, servicial y eficiente asistente virtual oficial de Fibra Óptica del Perú (FOP).
+Empresa: Corporación Fibra Óptica del Perú (Huancayo, Junín, Perú).
+WhatsApp oficial de pagos: +51 914 829 378 (Yape y Plin oficiales a este número).
+WhatsApp de soporte técnico: +51 929 234 880.
+Planes de internet simétrico:
+- Plan Básico: 300 Mbps a S/ 49.99 / mes.
+- Plan Estándar: 600 Mbps a S/ 69.99 / mes.
+- Plan Premium: 1000 Mbps a S/ 89.99 / mes.
+Todos incluyen fibra óptica 100% pura simétrica y televisión digital FiberTV gratis.
+Datos del abonado con el que estás hablando:
+- Nombre: ${nombreCliente}
+- DNI: ${dniCliente}
+- Plan actual: ${planCliente}
+- Estado de cuenta: ${estadoCliente}
+
+Instrucciones:
+- Saluda con calidez y amabilidad usando emojis.
+- Responde de forma concisa, clara y directa en español peruano profesional.
+- Si pregunta por su deuda o plan, dale la información exacta del cliente que tienes arriba.
+- Si pregunta cómo pagar, explícale que puede transferir por Yape o Plin al 914829378 o con tarjeta en la pestaña "Pagar" de esta app.
+- Si tiene problemas de internet, dale un tip técnico (como reiniciar la ONT/router 30 seg) y dale el WhatsApp de soporte técnico 929 234 880.
+- Mantén las respuestas breves para celular (máximo 2 párrafos cortos).`;
+
+      try {
+        if (!apiKey) {
+          throw new Error("No hay API Key configurada");
+        }
+
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${apiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [
+              { role: 'user', parts: [{ text: systemPrompt + "\n\nPregunta del cliente: " + msg }] }
+            ],
+            generationConfig: {
+              temperature: 0.3,
+              maxOutputTokens: 300
+            }
+          })
+        });
+
+        if (!res.ok) throw new Error("Status " + res.status);
+        const data = await res.json();
+        const respuestaIA = data.candidates[0].content.parts[0].text;
+        if (ind) ind.classList.add('hidden');
+        agregarBurbujaChat('fopi', respuestaIA);
+
+      } catch (err) {
+        console.warn("FOPI Gemini:", err);
+        if (ind) ind.classList.add('hidden');
+        let fallback = `¡Hola ${nombreCliente.split(' ')[0]}! 😊 Veo que tu plan es **${planCliente}** y tu estado actual es **${estadoCliente}**.\n\nPuedes pagar fácilmente por Plin o Yape al número oficial **914 829 378**. Si necesitas ayuda técnica personalizada, escríbenos al WhatsApp **929 234 880**. ¡Estoy para servirte!`;
+        agregarBurbujaChat('fopi', fallback);
+      }
+    }
+
+    function agregarBurbujaChat(remitente, texto) {
+      const cont = document.getElementById('contenedorMensajesFopi');
+      if (!cont) return;
+
+      const div = document.createElement('div');
+      if (remitente === 'usuario') {
+        div.className = "flex items-start justify-end space-x-2";
+        div.innerHTML = `
+          <div class="bg-[#001b68] text-white p-3 rounded-2xl rounded-tr-none shadow-xs max-w-[85%] text-[11px] leading-relaxed">
+            ${texto}
+          </div>
+        `;
+      } else {
+        div.className = "flex items-start space-x-2";
+        div.innerHTML = `
+          <div class="w-7 h-7 rounded-xl bg-[#001b68] text-white flex items-center justify-center text-xs shrink-0 shadow-xs">
+            🤖
+          </div>
+          <div class="bg-white p-3 rounded-2xl rounded-tl-none border border-slate-200/80 shadow-xs max-w-[85%] text-slate-800 space-y-1 text-[11px] leading-relaxed">
+            <p class="font-bold text-[10px] text-[#001b68]">FOPI</p>
+            <p>${texto.replace(/\n/g, '<br>')}</p>
+          </div>
+        `;
+      }
+      cont.appendChild(div);
+      cont.scrollTop = cont.scrollHeight;
     }
 
     // REGISTRO DE SERVICE WORKER PARA NOTIFICACIONES Y MODO APP PWA
