@@ -2195,6 +2195,8 @@ Si la foto NO es un comprobante de pago bancario legítimo, responde con:
     // ==============================================================
     // ASISTENTE VIRTUAL IA: "FOPI" (POWERED BY GEMINI 3.5 FLASH)
     // ==============================================================
+    let fopiHistorialConversacion = [];
+
     function abrirChatFopi() {
       const modal = document.getElementById('modal-chat-fopi');
       if (modal) modal.classList.remove('hidden');
@@ -2217,6 +2219,19 @@ Si la foto NO es un comprobante de pago bancario legítimo, responde con:
       }
     }
 
+    function formatearTextoFopi(texto) {
+      if (!texto) return '';
+      let escaped = String(texto)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+      escaped = escaped.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+      escaped = escaped.replace(/\*(.*?)\*/g, '<em>$1</em>');
+      escaped = escaped.replace(/`([^`]+)`/g, '<code class="bg-slate-100 px-1 rounded text-[10px] text-cyan-800">$1</code>');
+      escaped = escaped.replace(/\n/g, '<br>');
+      return escaped;
+    }
+
     async function enviarMensajeUsuarioFopi() {
       const input = document.getElementById('inputFopiTexto');
       const msg = input ? input.value.trim() : '';
@@ -2224,6 +2239,7 @@ Si la foto NO es un comprobante de pago bancario legítimo, responde con:
 
       input.value = '';
       agregarBurbujaChat('usuario', msg);
+      fopiHistorialConversacion.push({ role: 'user', content: msg });
 
       const ind = document.getElementById('indicadorEscribiendoFopi');
       if (ind) ind.classList.remove('hidden');
@@ -2232,47 +2248,71 @@ Si la foto NO es un comprobante de pago bancario legítimo, responde con:
 
       const nombreCliente = (clienteActivo && clienteActivo.nombre) || 'Abonado';
       const dniCliente = (clienteActivo && clienteActivo.dni) || 'No especificado';
-      const planCliente = planActual ? `${planActual.nombre} ${planActual.velocidad} Mbps` : 'Plan FOP';
+      const planCliente = planActual ? `${planActual.nombre} (${planActual.velocidad} Mbps)` : 'Plan FOP';
       const estadoCliente = deudaActual > 0 ? `DEUDA PENDIENTE de S/ ${deudaActual.toFixed(2)}` : 'AL DIA (S/ 0.00 de deuda, servicio activo)';
 
-      const systemPrompt = `Eres FOPI, el simpático, servicial y eficiente asistente virtual oficial de Fibra Óptica del Perú (FOP).
-Empresa: Corporación Fibra Óptica del Perú (Huancayo, Junín, Perú).
-WhatsApp oficial de pagos: +51 914 829 378 (Yape y Plin oficiales a este número).
-WhatsApp de soporte técnico: +51 929 234 880.
-Planes de internet simétrico:
-- Plan Básico: 300 Mbps a S/ 49.99 / mes.
-- Plan Estándar: 600 Mbps a S/ 69.99 / mes.
-- Plan Premium: 1000 Mbps a S/ 89.99 / mes.
-Todos incluyen fibra óptica 100% pura simétrica y televisión digital FiberTV gratis.
-Datos del abonado con el que estás hablando:
-- Nombre: ${nombreCliente}
-- DNI: ${dniCliente}
-- Plan actual: ${planCliente}
-- Estado de cuenta: ${estadoCliente}
+      const systemPrompt = `Eres el asistente virtual oficial de FOP, Fibra Óptica del Perú. Te llamas FOPI.
+Atiendes a personas que quieren contratar internet y a clientes que necesitan ayuda con sus pagos o su servicio.
 
-Instrucciones:
-- Saluda con calidez y amabilidad usando emojis.
-- Responde de forma concisa, clara y directa en español peruano profesional.
-- Si pregunta por su deuda o plan, dale la información exacta del cliente que tienes arriba.
-- Si pregunta cómo pagar, explícale que puede transferir por Yape o Plin al 914829378 o con tarjeta en la pestaña "Pagar" de esta app.
-- Si tiene problemas de internet, dale un tip técnico (como reiniciar la ONT/router 30 seg) y dale el WhatsApp de soporte técnico 929 234 880.
-- Mantén las respuestas breves para celular (máximo 2 párrafos cortos).`;
+REGLAS DE COMUNICACIÓN Y TONO:
+- Responde siempre en español, con un tono cercano y directo.
+- Usa mensajes cortos y haz una sola pregunta a la vez.
+- Cuando falte un dato, dilo de forma directa y ofrece el siguiente paso. Ejemplo: «Para confirmarte el costo de instalación, un asesor puede revisar las condiciones de tu zona. Puedes escribirnos al 912 868 053».
+- Nunca inventes coberturas ni condiciones fuera de estas directrices.
+
+QUÉ VENDE FOP:
+- FOP ofrece internet por fibra óptica para el hogar y planes Dúo que combinan internet con FiberTV. Si preguntan por un Dúo, consulta el catálogo de su zona antes de cotizarlo.
+- Catálogo de Planes de internet de FOP:
+  * Plan Básico: 300 Mbps | S/ 49.99 mensual
+  * Plan Estándar: 600 Mbps | S/ 69.99 mensual
+  * Plan Premium: 1000 Mbps | S/ 89.99 mensual
+- FiberTV: Ofrece más de 100 canales, LIGA1MAX y más de 1000 películas y series. Confirma en qué planes está incluido, si tiene un costo adicional y si hay una promoción vigente. Antes de ofrecer instalación gratis, WiFi 6, precios fijos o meses de FiberTV gratis, revisa las condiciones del plan y la zona.
+
+CÓMO ATENDER CADA CONSULTA:
+1. Planes y precios: Si te preguntan «¿cuánto cuesta el internet?» o similar, responde primero con el precio y la velocidad. Ejemplo: «¡Hola! En FOP tenemos internet desde S/ 49.99 al mes con 300 Mbps. ¿En qué distrito quieres instalarlo?».
+2. Recomendación de plan: Pregunta cuántas personas o dispositivos suelen conectarse al mismo tiempo y para qué usan internet. Recomienda un plan según esa respuesta y explica el motivo en una frase corta.
+3. Cobertura: Pide el distrito y el sector o barrio. Si hace falta revisar la ubicación exacta, deriva a un asesor. Confirma cobertura únicamente cuando figure como validada para el domicilio.
+4. Contratación: Resume el plan elegido, su precio mensual y los cargos o condiciones que estén confirmados. Si hay descuento, indica cuánto se paga durante la promoción y cuánto se paga después. Para continuar con un asesor, comparte los contactos oficiales de FOP: 912 868 053 y 929 234 880.
+5. Pagos: Comparte el portal oficial pago.fibraopticadelperu.com (y la sección Pagar de esta App). Guía al cliente con «Elige tu medio de pago» (Yape, Plin o Transferencia al número oficial 914 829 378) y «Luego de tu pago pulsa en Verificar mi pago». Si el pago sigue pendiente, deriva el caso a un asesor con su comprobante. REGLA ESTRICTA: NUNCA solicites claves ni códigos de verificación.
+6. Soporte técnico: Si el cliente se quedó sin internet o tiene fallas:
+   - Pregunta si el problema ocurre en un dispositivo o en todos.
+   - Si es en todos, pregunta qué luces ve encendidas en el router (PON, LOS, Power, WLAN).
+   - Si el problema persiste, deriva el caso al canal de soporte técnico: WhatsApp 929 234 880.
+7. Reclamos, cobros y bajas: Reconoce la solicitud con empatía y facilita el contacto con un asesor (912 868 053 o 929 234 880). Solo indica que se registró un caso, se confirmó un pago o se agendó una visita cuando el sistema devuelva esa confirmación.
+
+DATOS DEL CLIENTE EN LA APP:
+- Abonado: ${nombreCliente}
+- Documento (DNI): ${dniCliente}
+- Plan actual: ${planCliente}
+- Estado de cuenta actual: ${estadoCliente}
+(Si el abonado consulta su saldo, estado de cuenta o su plan contratado, bríndale estos datos exactos con amabilidad).`;
 
       try {
         if (!apiKey) {
           throw new Error("No hay API Key configurada");
         }
 
+        const contents = [
+          { role: 'user', parts: [{ text: systemPrompt + "\n\n--- INICIO DE CONVERSACIÓN ---" }] },
+          { role: 'model', parts: [{ text: "Entendido. Soy FOPI, asistente virtual de FOP, Fibra Óptica del Perú. Atiendo a clientes y contratantes con respuestas directas, cortas, cercanas y haciendo una sola pregunta a la vez conforme a las directrices de FOP." }] }
+        ];
+
+        const ultimos = fopiHistorialConversacion.slice(-8);
+        for (const t of ultimos) {
+          contents.push({
+            role: t.role,
+            parts: [{ text: t.content }]
+          });
+        }
+
         const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${apiKey}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            contents: [
-              { role: 'user', parts: [{ text: systemPrompt + "\n\nPregunta del cliente: " + msg }] }
-            ],
+            contents: contents,
             generationConfig: {
               temperature: 0.3,
-              maxOutputTokens: 300
+              maxOutputTokens: 250
             }
           })
         });
@@ -2281,12 +2321,14 @@ Instrucciones:
         const data = await res.json();
         const respuestaIA = data.candidates[0].content.parts[0].text;
         if (ind) ind.classList.add('hidden');
+        fopiHistorialConversacion.push({ role: 'model', content: respuestaIA });
         agregarBurbujaChat('fopi', respuestaIA);
 
       } catch (err) {
         console.warn("FOPI Gemini:", err);
         if (ind) ind.classList.add('hidden');
-        let fallback = `¡Hola ${nombreCliente.split(' ')[0]}! 😊 Veo que tu plan es **${planCliente}** y tu estado actual es **${estadoCliente}**.\n\nPuedes pagar fácilmente por Plin o Yape al número oficial **914 829 378**. Si necesitas ayuda técnica personalizada, escríbenos al WhatsApp **929 234 880**. ¡Estoy para servirte!`;
+        let fallback = `¡Hola ${nombreCliente.split(' ')[0]}! En FOP tenemos internet por fibra óptica desde S/ 49.99 con 300 Mbps, 600 Mbps a S/ 69.99 y 1000 Mbps a S/ 89.99 (con FiberTV).\n\nTu plan registrado es **${planCliente}** (${estadoCliente}). Para pagos o consultas personalizadas, puedes escribir a nuestros asesores al **912 868 053** o **929 234 880**. ¿En qué puedo orientarte hoy?`;
+        fopiHistorialConversacion.push({ role: 'model', content: fallback });
         agregarBurbujaChat('fopi', fallback);
       }
     }
@@ -2300,7 +2342,7 @@ Instrucciones:
         div.className = "flex items-start justify-end space-x-2";
         div.innerHTML = `
           <div class="bg-[#001b68] text-white p-3 rounded-2xl rounded-tr-none shadow-xs max-w-[85%] text-[11px] leading-relaxed">
-            ${texto}
+            ${formatearTextoFopi(texto)}
           </div>
         `;
       } else {
@@ -2310,8 +2352,8 @@ Instrucciones:
             <img src="fopi-avatar.png" alt="FOPI" class="w-full h-full object-cover">
           </div>
           <div class="bg-white p-3 rounded-2xl rounded-tl-none border border-slate-200/80 shadow-xs max-w-[85%] text-slate-800 space-y-1 text-[11px] leading-relaxed">
-            <p class="font-bold text-[10px] text-[#001b68]">FOPI</p>
-            <p>${texto.replace(/\n/g, '<br>')}</p>
+            <p class="font-bold text-[10px] text-[#001b68]">FOPI · FOP</p>
+            <p>${formatearTextoFopi(texto)}</p>
           </div>
         `;
       }
