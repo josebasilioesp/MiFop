@@ -844,7 +844,7 @@
   <!-- BOTÓN FLOTANTE DE FOPI (ASISTENTE IA VIRTUAL DE FOP) -->
   <!-- ============================================================== -->
   <div id="btnFopiFloating" onclick="abrirChatFopi()" 
-       class="fixed bottom-20 right-4 z-40 flex items-center space-x-2 bg-gradient-to-r from-[#001b68] to-[#01c0c8] text-white p-2.5 sm:px-3 sm:py-2.5 rounded-full shadow-2xl cursor-pointer hover:scale-105 active:scale-95 transition-all border-2 border-white/80 animate-bounce">
+       class="hidden fixed bottom-20 right-4 z-40 flex items-center space-x-2 bg-gradient-to-r from-[#001b68] to-[#01c0c8] text-white p-2.5 sm:px-3 sm:py-2.5 rounded-full shadow-2xl cursor-pointer hover:scale-105 active:scale-95 transition-all border-2 border-white/80 animate-bounce">
     <div class="relative w-8 h-8 rounded-full bg-white flex items-center justify-center p-0.5 shadow-inner shrink-0 overflow-hidden">
       <img src="fopi-avatar.png" alt="FOPI" class="w-full h-full object-cover rounded-full">
       <span class="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full border border-white animate-pulse"></span>
@@ -1413,13 +1413,16 @@
     function actualizarEstilosSegunVista(activeView) {
       const appHeader = document.getElementById('appInternalHeader');
       const bottomNav = document.getElementById('bottomNavBar');
+      const btnFopi = document.getElementById('btnFopiFloating');
 
-      if (activeView === 'splash' || activeView === 'login') {
+      if (activeView === 'splash' || activeView === 'login' || !isAuthenticated) {
         appHeader.classList.add('hidden');
         bottomNav.classList.add('hidden');
+        if (btnFopi) btnFopi.classList.add('hidden');
       } else {
         appHeader.classList.remove('hidden');
         bottomNav.classList.remove('hidden');
+        if (btnFopi) btnFopi.classList.remove('hidden');
 
         const tabs = {
           portal: document.getElementById('tabPortal'),
@@ -1549,6 +1552,9 @@
       const inpPass = document.getElementById('loginPassInput');
       if (inpDni) inpDni.value = '';
       if (inpPass) inpPass.value = '';
+      const btnFopi = document.getElementById('btnFopiFloating');
+      if (btnFopi) btnFopi.classList.add('hidden');
+      cerrarChatFopi();
       goToView('splash');
     }
 
@@ -2193,9 +2199,14 @@ Si la foto NO es un comprobante de pago bancario legítimo, responde con:
     }
 
     // ==============================================================
-    // ASISTENTE VIRTUAL IA: "FOPI" (POWERED BY GEMINI 3.5 FLASH)
+    // ASISTENTE VIRTUAL IA: "FOPI" (SISTEMA CONVERSACIONAL OFICIAL FOP)
     // ==============================================================
     let fopiHistorialConversacion = [];
+    let fopiEstado = {
+      fase: 'inicio', // 'inicio', 'preguntando_distrito', 'preguntando_dispositivos', 'soporte_dispositivos', 'soporte_luces'
+      distrito: '',
+      dispositivos: ''
+    };
 
     function abrirChatFopi() {
       const modal = document.getElementById('modal-chat-fopi');
@@ -2230,6 +2241,119 @@ Si la foto NO es un comprobante de pago bancario legítimo, responde con:
       escaped = escaped.replace(/`([^`]+)`/g, '<code class="bg-slate-100 px-1 rounded text-[10px] text-cyan-800">$1</code>');
       escaped = escaped.replace(/\n/g, '<br>');
       return escaped;
+    }
+
+    // MOTOR CONVERSACIONAL INTELIGENTE SEGÚN LAS DIRECTRICES OFICIALES DE FOP
+    function generarRespuestaFopiInteligente(msg, nombreCliente, dniCliente, planCliente, estadoCliente) {
+      const q = (msg || '').toLowerCase().trim();
+      const primerNombre = (nombreCliente || 'Abonado').split(' ')[0];
+
+      // 1. Saludos generales y aperturas
+      const esSaludo = /^(hola|buenas|buen dia|buenos dias|buenas tardes|buenas noches|que tal|ola|oe|alo|saludos)\b/i.test(q);
+      const esDudaInicial = /^(tengo una duda|tengo una consulta|una pregunta|ayuda|consulta|duda|necesito ayuda|informacion|quiero saber)\b/i.test(q);
+
+      if (esSaludo && q.length < 25 && fopiEstado.fase === 'inicio') {
+        return `¡Hola ${primerNombre}! 👋 Con gusto te ayudo. ¿Tu consulta es sobre tus pagos, tu plan de internet o necesitas soporte técnico?`;
+      }
+      if (esDudaInicial && q.length < 40 && fopiEstado.fase === 'inicio') {
+        return `¡Dime ${primerNombre}! Estoy atento para resolver tu duda. ¿Tu consulta es sobre tus pagos, tu plan de fibra óptica o tienes alguna falla con tu internet?`;
+      }
+
+      // 2. Soporte técnico - Si estábamos esperando si la falla es en un dispositivo o en todos
+      if (fopiEstado.fase === 'soporte_dispositivos') {
+        if (/solo\s*(en)?\s*(uno|un|mi)|en mi cel|solo un|en uno|mi telefono|mi pc|mi laptop/i.test(q)) {
+          fopiEstado.fase = 'inicio';
+          return `Si ocurre en un solo dispositivo, te sugiero olvidar la red Wi-Fi en los ajustes de tu equipo y volver a conectarte, o reiniciar tu celular/computadora. ¿Se restableció tu conexión?`;
+        }
+        if (/todos|todo|en todos|la casa|nadie|ninguno|en varios/i.test(q)) {
+          fopiEstado.fase = 'soporte_luces';
+          return `¿Qué luces ves encendidas o parpadeando en el router (por ejemplo PON, LOS, Power o WLAN)?`;
+        }
+      }
+
+      // 3. Soporte técnico - Si estábamos esperando las luces del router
+      if (fopiEstado.fase === 'soporte_luces') {
+        fopiEstado.fase = 'inicio';
+        return `Si la luz LOS está roja o la luz PON no está fija, desconecta el cable de corriente del router por 30 segundos y vuelve a enchufarlo. Si tras 2 minutos el problema persiste, podemos coordinar soporte técnico al WhatsApp oficial: **929 234 880**.`;
+      }
+
+      // 4. Planes - Si estábamos esperando el distrito
+      if (fopiEstado.fase === 'preguntando_distrito') {
+        fopiEstado.distrito = msg;
+        fopiEstado.fase = 'preguntando_dispositivos';
+        return `¡Perfecto! Para recomendarte el mejor plan en tu zona: ¿cuántas personas o dispositivos suelen conectarse al mismo tiempo y para qué usan internet?`;
+      }
+
+      // 5. Planes - Si estábamos esperando cantidad de dispositivos / tipo de uso
+      if (fopiEstado.fase === 'preguntando_dispositivos') {
+        fopiEstado.fase = 'inicio';
+        const numMatch = q.match(/\d+/);
+        const cantidad = numMatch ? parseInt(numMatch[0]) : 0;
+        const heavy = /juego|gamer|stream|4k|descarga|trabajo|oficina|muchos|varios|videos/i.test(q);
+
+        if (cantidad >= 7 || /muchos|empresa|negocio/i.test(q)) {
+          return `Te recomiendo el **Plan Premium de 1000 Mbps a S/ 89.99/mes**, ideal para alta demanda de dispositivos y descargas pesadas simultáneas. Para coordinar la instalación con un asesor, escríbenos al **912 868 053** o **929 234 880**. ¿Deseas que te asista con algo más?`;
+        } else if (cantidad >= 3 || heavy) {
+          return `Te recomiendo el **Plan Estándar de 600 Mbps a S/ 69.99/mes**, brinda el balance perfecto para streaming en alta definición, videollamadas y videojuegos sin interrupciones. Para validar tu instalación con un asesor, escríbenos al **912 868 053**. ¿En qué sector o barrio te ubicas?`;
+        } else {
+          return `Te recomiendo el **Plan Básico de 300 Mbps a S/ 49.99/mes**, es veloz, económico y cubre plenamente redes sociales, videos y navegación en el hogar. Para continuar con la contratación, puedes escribir a nuestros asesores al **912 868 053**. ¿Tienes alguna consulta adicional?`;
+        }
+      }
+
+      // 6. Consultas de Planes y Precios («¿cuánto cuesta el internet?»)
+      if (/(cuanto cuesta|precio|planes|plan|tarifa|costo|cuanto esta|catalogo|promocion|megas|velocidad)/i.test(q)) {
+        fopiEstado.fase = 'preguntando_distrito';
+        return `¡Hola! En FOP tenemos internet por fibra óptica desde **S/ 49.99 al mes con 300 Mbps**, 600 Mbps a **S/ 69.99** y 1000 Mbps a **S/ 89.99** (con opción a FiberTV). ¿En qué distrito quieres instalarlo?`;
+      }
+
+      // 7. FiberTV / Televisión / Dúo / Liga 1 Max
+      if (/(fibertv|tv|television|cable|canales|liga1|liga 1|futbol|peliculas|duo)/i.test(q)) {
+        return `**FiberTV** ofrece más de 100 canales en vivo, **LIGA1MAX** y más de 1000 películas y series en planes Dúo. ¿En qué distrito te encuentras para consultar el catálogo y promociones de tu zona?`;
+      }
+
+      // 8. Cobertura / Distritos
+      if (/(cobertura|llega|zona|distrito|lugar|huancayo|tambo|chilca|donde estan|instalacion)/i.test(q)) {
+        return `Para verificar si tenemos cobertura validada en tu domicilio, por favor indícame tu **distrito** y tu **sector o barrio**. También un asesor puede revisar la factibilidad técnica al **912 868 053**.`;
+      }
+
+      // 9. Consulta de Deuda / Estado de Cuenta / Saldo
+      if (/(deuda|debo|mi saldo|cuanto debo|recibo|mi cuenta|factura|pagar mi recibo|estado de cuenta|estoy al dia)/i.test(q)) {
+        return `Hola ${primerNombre}, tu plan registrado es **${planCliente}** y tu estado actual es: **${estadoCliente}**. Puedes cancelar en la pestaña «Pagar» de esta app o vía Yape/Plin al **914 829 378**.`;
+      }
+
+      // 10. Cómo pagar / Billeteras Digitales
+      if (/(como pago|donde pago|yape|plin|transferencia|bcp|bbva|banco|cuenta|billetera|medios de pago)/i.test(q)) {
+        return `Puedes pagar en el portal oficial **pago.fibraopticadelperu.com** o directamente en la pestaña **Pagar** de esta App. Elige tu medio de pago (Yape, Plin o Transferencia al **914 829 378**) y luego de transferir pulsa en **«Verificar mi pago»**. Recuerda que nunca te solicitaremos claves ni códigos de verificación.`;
+      }
+
+      // 11. Pago ya realizado pero pendiente en el sistema
+      if (/(ya pague|ya deposite|ya transferi|pago pendiente|no se actualiza|figura deuda|sigue saliendo)/i.test(q)) {
+        return `Si ya realizaste tu pago y aún figura pendiente tras verificarlo en el sistema, por favor envía la captura de tu comprobante a un asesor oficial al **912 868 053** o **929 234 880** para validarlo.`;
+      }
+
+      // 12. Falla de internet / Soporte técnico
+      if (/(sin internet|no tengo internet|no hay internet|lento|falla|se corto|caido|problema|router|señal|wifi|desconectado)/i.test(q)) {
+        fopiEstado.fase = 'soporte_dispositivos';
+        return `Lamento el inconveniente con tu servicio. Para ayudarte a resolverlo: ¿el problema ocurre en un solo dispositivo o en todos los de tu casa?`;
+      }
+
+      // 13. Reclamos, Cobros y Bajas
+      if (/(reclamo|queja|dar de baja|cancelar|baja|anular|cobro indebido|inconforme)/i.test(q)) {
+        return `Comprendo tu solicitud. Para atender formalmente tu caso y registrarlo en el sistema, comunícate directamente con nuestros asesores al **912 868 053** o **929 234 880**. ¿Deseas que te brinde alguna información adicional?`;
+      }
+
+      // 14. Contacto de Asesores / Números telefónicos / WhatsApp
+      if (/(asesor|contacto|numero|telefono|whatsapp|oficina|humano|persona|llamar)/i.test(q)) {
+        return `Puedes comunicarte directamente con los asesores oficiales de FOP a través de WhatsApp o llamada a los números **912 868 053** y **929 234 880**.`;
+      }
+
+      // 15. Contratación
+      if (/(contratar|quiero internet|adquirir|instalar|solicitar|nuevo servicio)/i.test(q)) {
+        return `¡Excelente! En FOP contamos con planes desde 300 Mbps a S/ 49.99/mes con 100% fibra óptica pura. Para que un asesor valide las condiciones de tu zona y agende tu instalación, escríbenos al WhatsApp **912 868 053**. ¿En qué distrito te encuentras?`;
+      }
+
+      // 16. Respuesta por defecto directa y con siguiente paso
+      return `Con gusto te asisto, ${primerNombre}. En FOP ofrecemos internet por fibra óptica desde S/ 49.99 (300 Mbps), 600 Mbps (S/ 69.99) y 1000 Mbps (S/ 89.99), además de FiberTV. Para una atención personalizada con un asesor, puedes escribirnos al **912 868 053** o **929 234 880**. ¿Tu consulta es sobre planes, pagos o soporte?`;
     }
 
     async function enviarMensajeUsuarioFopi() {
@@ -2287,50 +2411,58 @@ DATOS DEL CLIENTE EN LA APP:
 - Estado de cuenta actual: ${estadoCliente}
 (Si el abonado consulta su saldo, estado de cuenta o su plan contratado, bríndale estos datos exactos con amabilidad).`;
 
-      try {
-        if (!apiKey) {
-          throw new Error("No hay API Key configurada");
-        }
+      // Si la API key es válida de Gemini (inicia con AIzaSy), intentar llamada a Gemini
+      const esKeyGeminiValida = apiKey && apiKey.startsWith('AIzaSy');
 
-        const contents = [
-          { role: 'user', parts: [{ text: systemPrompt + "\n\n--- INICIO DE CONVERSACIÓN ---" }] },
-          { role: 'model', parts: [{ text: "Entendido. Soy FOPI, asistente virtual de FOP, Fibra Óptica del Perú. Atiendo a clientes y contratantes con respuestas directas, cortas, cercanas y haciendo una sola pregunta a la vez conforme a las directrices de FOP." }] }
-        ];
+      if (esKeyGeminiValida) {
+        try {
+          const contents = [
+            { role: 'user', parts: [{ text: systemPrompt + "\n\n--- INICIO DE CONVERSACIÓN ---" }] },
+            { role: 'model', parts: [{ text: "Entendido. Soy FOPI, asistente virtual de FOP, Fibra Óptica del Perú. Atiendo a clientes y contratantes con respuestas directas, cortas, cercanas y haciendo una sola pregunta a la vez conforme a las directrices de FOP." }] }
+          ];
 
-        const ultimos = fopiHistorialConversacion.slice(-8);
-        for (const t of ultimos) {
-          contents.push({
-            role: t.role,
-            parts: [{ text: t.content }]
+          const ultimos = fopiHistorialConversacion.slice(-8);
+          for (const t of ultimos) {
+            contents.push({
+              role: t.role,
+              parts: [{ text: t.content }]
+            });
+          }
+
+          const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: contents,
+              generationConfig: {
+                temperature: 0.3,
+                maxOutputTokens: 250
+              }
+            })
           });
-        }
 
-        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${apiKey}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: contents,
-            generationConfig: {
-              temperature: 0.3,
-              maxOutputTokens: 250
+          if (res.ok) {
+            const data = await res.json();
+            const respuestaIA = data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts[0].text;
+            if (respuestaIA) {
+              if (ind) ind.classList.add('hidden');
+              fopiHistorialConversacion.push({ role: 'model', content: respuestaIA });
+              agregarBurbujaChat('fopi', respuestaIA);
+              return;
             }
-          })
-        });
-
-        if (!res.ok) throw new Error("Status " + res.status);
-        const data = await res.json();
-        const respuestaIA = data.candidates[0].content.parts[0].text;
-        if (ind) ind.classList.add('hidden');
-        fopiHistorialConversacion.push({ role: 'model', content: respuestaIA });
-        agregarBurbujaChat('fopi', respuestaIA);
-
-      } catch (err) {
-        console.warn("FOPI Gemini:", err);
-        if (ind) ind.classList.add('hidden');
-        let fallback = `¡Hola ${nombreCliente.split(' ')[0]}! En FOP tenemos internet por fibra óptica desde S/ 49.99 con 300 Mbps, 600 Mbps a S/ 69.99 y 1000 Mbps a S/ 89.99 (con FiberTV).\n\nTu plan registrado es **${planCliente}** (${estadoCliente}). Para pagos o consultas personalizadas, puedes escribir a nuestros asesores al **912 868 053** o **929 234 880**. ¿En qué puedo orientarte hoy?`;
-        fopiHistorialConversacion.push({ role: 'model', content: fallback });
-        agregarBurbujaChat('fopi', fallback);
+          }
+        } catch (apiErr) {
+          console.warn("FOP Gemini API no disponible, usando motor contextual:", apiErr);
+        }
       }
+
+      // Motor conversacional inteligente local basado 100% en el Word de FOP
+      setTimeout(() => {
+        if (ind) ind.classList.add('hidden');
+        const respuesta = generarRespuestaFopiInteligente(msg, nombreCliente, dniCliente, planCliente, estadoCliente);
+        fopiHistorialConversacion.push({ role: 'model', content: respuesta });
+        agregarBurbujaChat('fopi', respuesta);
+      }, 400);
     }
 
     function agregarBurbujaChat(remitente, texto) {
